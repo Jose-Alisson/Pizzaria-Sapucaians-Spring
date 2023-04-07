@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import br.com.sapucaia.model.Produto;
 import br.com.sapucaia.repository.ProdutoRepository;
@@ -36,36 +35,22 @@ public class ProdutoController {
 	@Autowired
 	private ProdutoRepository repository;
 	
-	private FileController fileController;
-	
-	public ProdutoController() {
-		this.fileController = new FileController();
-	}
-
 	@PostMapping("/save")
 	public ResponseEntity<?> save(@RequestBody Produto produto) {
-		System.out.println(produto.toString());
 		return new ResponseEntity<>(repository.save(produto), HttpStatus.OK);
 	}
 	
-	@PostMapping("/save/withFoto")
-	public ResponseEntity<?> save(@RequestParam("file") MultipartFile file) {
-		//produto.setFoto(this.fileController.handleFileUpload(file));
-		
-		return new ResponseEntity<>(this.fileController.handleFileUpload(file) ,HttpStatus.OK);
-	}
-
 	@PutMapping("/update/{id}")
-	public ResponseEntity<?> update(@RequestParam("id") Long id, @RequestBody Produto produto) {
+	public ResponseEntity<?> update(@PathVariable("id") Long id, @RequestBody Produto produto) {
 
-		Optional<Produto> prod = repository.findById(id);
-
-		if (prod.isPresent()) {
+		if (repository.existsById(id)) {
 			Produto _prod = Produto.builder()
-					.id(id).foto(produto.getFoto())
+					.id(id)
+					.fotoUrl(produto.getFotoUrl())
 					.descricao(produto.getDescricao())
 					.nomeDoProduto(produto.getNomeDoProduto())
 					.preco(produto.getPreco())
+					.categoria(produto.getCategoria())
 					.emEstoque(produto.getEmEstoque())
 					.build();
 			return new ResponseEntity<>(repository.save(_prod),HttpStatus.OK);
@@ -76,31 +61,40 @@ public class ProdutoController {
 	
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<?> delete(@RequestParam("id") Long id) {
-		repository.deleteById(id);
-		return new ResponseEntity<>(HttpStatus.OK);
+		if(repository.existsById(id)){
+			repository.deleteById(id);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 	}
 	
 	@GetMapping("/find/{id}")
-	public ResponseEntity<?> findById(@RequestParam("id") Long id){
-		return new ResponseEntity<>(repository.findById(id),HttpStatus.OK);
+	public ResponseEntity<?> findById(@PathVariable("id") Long id){
+		Optional<Produto> prod = repository.findById(id);
+		
+		if(prod.isPresent()) {
+			return new ResponseEntity<>(prod, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);	
+		}
 	}
 	
-	@PostMapping("/findAll")
+	@GetMapping("/findAll")
 	public ResponseEntity<?> findAll(){
-		System.out.println("foi");
 		return new ResponseEntity<>(repository.findAll(),HttpStatus.OK);
 	}
 	
-	@PostMapping("/imagem/{id}")
+		
+	@GetMapping("/imagem/{id}")
 	public ResponseEntity<byte[]> downloadImagem(@PathVariable Long id) {
 		Optional<Produto> _prod = repository.findById(id);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		
 		if(_prod.isPresent()) {
-			Produto prod = _prod.get();
-			
-			if(!prod.getFoto().equals("") && prod.getFoto() != null) {
-				File file = new File(prod.getFoto());
+			Produto prod = _prod.get();	
+			if(!prod.getFotoUrl().equals("") && prod.getFotoUrl() != null) {
+				File file = new File(prod.getFotoUrl());
 				try {
 					BufferedImage img = ImageIO.read(file);
 					ImageIO.write(img, "png", outputStream);
@@ -108,17 +102,7 @@ public class ProdutoController {
 					
 					e.printStackTrace();
 				}
-			} else {
-				File file = new File("C:\\Users\\Jose Alisson\\Desktop\\Pizzaria\\local\\notFound.png");
-				try {
-					BufferedImage img = ImageIO.read(file);
-					ImageIO.write(img, "png", outputStream);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		
 		byte[] imagemBytes = outputStream.toByteArray();

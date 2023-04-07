@@ -24,7 +24,7 @@ public class Produto {
 	private long id;
 	
 	@Column(name = "foto")
-	private String foto;
+	private String fotoUrl;
 	
 	@Column(name = "nome_do_produto")
 	private String nomeDoProduto;

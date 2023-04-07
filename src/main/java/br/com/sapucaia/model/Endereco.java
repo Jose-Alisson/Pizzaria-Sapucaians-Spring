@@ -20,7 +20,13 @@ public class Endereco {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "endereco_id")
-	private long id = 0;
+	private long id;
+	
+	@Column(name = "latitude")
+	private String latitude;
+	
+	@Column(name = "logitude")
+	private String logitude;
 	
 	@Column(name = "nome_do_endereco")
 	private String nomeDoEndereco;

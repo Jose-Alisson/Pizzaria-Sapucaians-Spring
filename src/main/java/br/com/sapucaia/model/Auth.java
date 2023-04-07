@@ -3,6 +3,8 @@ package br.com.sapucaia.model;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,8 +14,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -23,34 +23,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "auth")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Usuario {
+public class Auth {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	
-	@Column( name = "contato")
-	private String contato;
+	@OneToOne(cascade = CascadeType.ALL/*, fetch = FetchType.LAZY, mappedBy = "authPs"*/)
+	@JoinColumn(name = "usuario_id")
+	private Usuario usuario;
 	
-	@Column(name = "nome")
-	private String name;
+	//@JsonIgnore
+	@Column(name = "password")
+	private String password;
 	
-	@Column(name = "sobrenome")
-	private String sobrenome;
+	@Column(name = "type_rule")
+	private String typeRule;
 	
-	@ManyToMany(cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
-	@JoinColumn(name = "endereco_id")
-	private List<Endereco> enderecos;
+	@Column(name = "email", nullable = false, unique = true)
+	private String email;
 	
-	@JsonIgnore
-	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
-	private List<Pedido> pedidos;
-		
-	@Column(name = "foto_url")
-	private String fotoUrl;
+	@OneToMany(mappedBy = "authPs", fetch = FetchType.EAGER)
+	private List<Permissao> permissoes;
 }

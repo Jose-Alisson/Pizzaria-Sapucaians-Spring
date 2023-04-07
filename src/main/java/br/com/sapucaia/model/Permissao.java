@@ -2,7 +2,6 @@ package br.com.sapucaia.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,20 +13,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "produto_quantidade")
+@Table(name = "permissoes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuantidadeProduto {
+public class Permissao {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "produto_id")
-	private Produto produto;
+    @Column(name = "name")
+    private String name;
+    
+    @Column(name = "type_permission")
+    private String type;
 
-	@Column(name = "quantidade")
-	private int quantidade;
+    @ManyToOne
+    @JoinColumn(name = "auth_id")
+    private Auth authPs;
 }
