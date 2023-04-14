@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import br.com.sapucaia.model.Auth;
 
@@ -37,10 +38,9 @@ public class TokenService {
                 .build().verify(token).getSubject();
 	}
 	
-	//Gera token jwt para verificar um numero de telefone
 	public String GenerateCodeVerify(String code) {
 		Date date = Date.from(LocalDateTime.now()
-		        .plusMinutes(3)
+		        .plusMinutes(30)
 		        .toInstant(ZoneOffset.of("-03:00")));
 		
 		return JWT.create()
@@ -50,11 +50,10 @@ public class TokenService {
 		.sign(Algorithm.HMAC256(chave));
 	}
 	
-	public String CodeVerify(String token) {
-		 return JWT.require(Algorithm.HMAC256(token))
+	public DecodedJWT getCodeVerify(String token) {
+		 return JWT.require(Algorithm.HMAC256(chave))
 				 .withIssuer("code verify")
 				 .build()
-				 .verify(token)
-				 .getClaim("code").asString();
+				 .verify(token);
 	}
 }

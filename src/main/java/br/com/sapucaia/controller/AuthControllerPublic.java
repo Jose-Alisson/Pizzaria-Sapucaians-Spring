@@ -1,5 +1,7 @@
 package br.com.sapucaia.controller;
 
+import java.util.Random;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
+
 import br.com.sapucaia.detail.UserDetailAuth;
 import br.com.sapucaia.jwt.TokenService;
+import br.com.sapucaia.message.MessagePs;
+import br.com.sapucaia.message.MessageService;
 import br.com.sapucaia.model.Auth;
 import br.com.sapucaia.repository.AuthRepository;
 import br.com.sapucaia.repository.PermissaoRepository;
@@ -39,6 +45,9 @@ public class AuthControllerPublic {
 	@Autowired
 	private TokenService tokenService;
 
+	@Autowired
+	private MessageService messageService;
+
 	public BCryptPasswordEncoder getPasswordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
@@ -56,9 +65,10 @@ public class AuthControllerPublic {
 			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(auth_.getEmail(),
 					auth_.getPassword());
 			Authentication authen = authenticationManager.authenticate(authToken);
-			
+
 			Object response = new Object() {
-				public String accessToken = tokenService.generateToken(((UserDetailAuth) authen.getPrincipal()).getAuth().get());
+				public String accessToken = tokenService
+						.generateToken(((UserDetailAuth) authen.getPrincipal()).getAuth().get());
 				public Auth auth = repository.findByEmail(auth_.getEmail()).get();
 			};
 
@@ -67,19 +77,53 @@ public class AuthControllerPublic {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 	}
-	
+
 	@GetMapping("/isExist")
-	public ResponseEntity<?> isExist(@RequestParam("email") String email){
-		return new ResponseEntity<>(repository.existByEmail(email),HttpStatus.OK);
+	public ResponseEntity<?> isExist(@RequestParam("email") String email) {
+		return new ResponseEntity<>(repository.existByEmail(email), HttpStatus.OK);
 	}
-	
-	@PostMapping("/varifyCode")
-	public ResponseEntity<?> validarCodigoDeVirificacao(
-			@RequestParam("code") String code,
-			@RequestHeader("") String token){
-		if(token != null) {
-			
+
+	@GetMapping("verifyCode")
+	public ResponseEntity<?> getCodeNumber(@RequestParam("number") String number,
+			@RequestParam("provider") String provider) {
+
+		int generatedCode = 10000 + new Random().nextInt(89999);
+		MessagePs message = MessagePs.builder().to(number)
+				.message("Seu código de verificação é: " + generatedCode).build();
+		
+		
+		
+		if (provider.equals("Whatsapp")) {
+			messageService.sendMessageWhatsapp(message);
+		} else if (provider.equals("Telefone")) {
+			messageService.sendMessagePhone(message);
+
 		}
-		return new ResponseEntity<>(HttpStatus.OK);
+		System.out.println(generatedCode);
+		Object token = new Object() {
+			public String token = tokenService.GenerateCodeVerify(generatedCode + "");
+		};
+		return new ResponseEntity<>(token, HttpStatus.OK);
+	}
+
+	@PostMapping("verifyCode")
+	public ResponseEntity<?> verifyCodeNumber(@RequestHeader("codeToken") String codeToken,
+			@RequestParam("code") String code) {
+
+		if (codeToken != null) {
+			String token = codeToken.replaceAll("Bearer ", "");
+			
+			DecodedJWT decoded = tokenService.getCodeVerify(token);
+
+			System.out.println("ésse é o codigo do token" +  decoded.getClaim("code").asString());
+			
+			if (!(decoded.getClaim("code").asString().equals(code))) {
+				return new ResponseEntity<>("Código Invalido", HttpStatus.UNAUTHORIZED);
+			}
+
+			return new ResponseEntity<>(code, HttpStatus.OK);
+		}
+		
+		return new ResponseEntity<>("Token não present", HttpStatus.UNAUTHORIZED);
 	}
 }
