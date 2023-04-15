@@ -18,7 +18,7 @@ public class CorsConfig /*implements WebMvcConfigurer*/{
          .maxAge(3600);
 	}*/
 	
-	 @Bean
+	/* @Bean
 	    public WebMvcConfigurer corsConfigurer() {
 	        return new WebMvcConfigurer() {
 	            @Override
@@ -28,5 +28,5 @@ public class CorsConfig /*implements WebMvcConfigurer*/{
 	                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
 	            }
 	        };
-	    }
+	    }*/
 }

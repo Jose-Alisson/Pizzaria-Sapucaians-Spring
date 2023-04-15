@@ -19,7 +19,7 @@ import br.com.sapucaia.model.Usuario;
 import br.com.sapucaia.repository.UsuarioRepository;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @CrossOrigin("*")
 public class UsuarioController {
 	

@@ -3,6 +3,7 @@ package br.com.sapucaia.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -13,6 +14,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.twilio.rest.chat.v2.service.channel.Webhook.Method;
 
 import br.com.sapucaia.detail.UsuarioDetailService;
 import br.com.sapucaia.filter.AuthFilter;
@@ -30,14 +35,17 @@ public class WebSecurityConfiguration {
 
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-		http.csrf().disable().authorizeHttpRequests()
-				.requestMatchers("/public/auth/**").permitAll()
-				.anyRequest().permitAll()
+		http.cors().and()
+		.csrf().disable().authorizeHttpRequests()
+				.requestMatchers("/api/auth/save").permitAll()
+				.requestMatchers("/api/auth/login").permitAll()
+				.requestMatchers("/api/auth/isExist").permitAll()
+				.requestMatchers("/api/auth/verifyCode").permitAll()
+				.anyRequest().authenticated()
 				.and()
 				.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
 				.sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).maximumSessions(Integer.MAX_VALUE);
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		return http.build();
 	}
 
@@ -61,6 +69,19 @@ public class WebSecurityConfiguration {
     public AuthenticationManager authenticationManager
             (AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+    
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+            	 registry.addMapping("/**")
+                 .allowedOrigins("*")
+                 .allowedMethods("*")
+                 .allowedHeaders("*");
+            }
+        };
     }
 
 	@Bean

@@ -21,7 +21,7 @@ import br.com.sapucaia.model.Pedido;
 import br.com.sapucaia.repository.PedidoRepository;
 
 @RestController
-@RequestMapping("/pedido")
+@RequestMapping("/api/pedido")
 @CrossOrigin("*")
 public class PedidoController {
 

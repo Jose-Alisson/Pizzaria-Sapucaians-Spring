@@ -18,4 +18,7 @@ public interface AuthRepository extends JpaRepository<Auth, Long>{
 	
 	@Query(value = "select exists(select 1 from auth a where a.email = ?1)", nativeQuery = true)
 	long existByEmail(String email);
+	
+	@Query(value = "select u.type_rule from auth u where u.email = ?1", nativeQuery = true)
+	String findTypeByEmail(String email);
 }

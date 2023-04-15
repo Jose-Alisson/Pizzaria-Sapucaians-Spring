@@ -28,7 +28,7 @@ import br.com.sapucaia.model.Produto;
 import br.com.sapucaia.repository.ProdutoRepository;
 
 @RestController
-@RequestMapping("/produto")
+@RequestMapping("/api/produto")
 @CrossOrigin("*")
 public class ProdutoController {
 

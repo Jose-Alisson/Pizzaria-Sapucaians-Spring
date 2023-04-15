@@ -17,7 +17,7 @@ import br.com.sapucaia.repository.AuthRepository;
 import br.com.sapucaia.repository.PermissaoRepository;
 
 @RestController
-@RequestMapping("/permissao")
+@RequestMapping("/api/permissao")
 public class PermissaoController {
 
 	@Autowired

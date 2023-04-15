@@ -23,28 +23,31 @@ public class MessageService {
 	private String PHONE_NUMBER;
 
 	
-	public void sendMessageWhatsapp(MessagePs messagePs) {
+	public void sendMessage(MessagePs messagePs,String provedor) {
 		Twilio.init(SID_ACCOUNT, AUTH_ACCOUNT);
 
-		Message message = Message.creator(
-				new PhoneNumber("whatsapp:+558173127515"),
-				new PhoneNumber("whatsapp:+14155238886"), 		
+		/*switch (provedor) {
+		case "Whatsapp":
+			Message.creator(
+				new PhoneNumber("whatsapp:+" + messagePs.getTo()),
+				new PhoneNumber("whatsapp:" + WHATSAPP_NUMBER), 		
 						messagePs.getMessage())
 				.create();
-		
-		System.out.println(WHATSAPP_NUMBER);
-		System.out.println(messagePs.getTo());
-	}
-	
-	public void sendMessagePhone(MessagePs messagePs) {
-		/*Twilio.init(SID_ACCOUNT, AUTH_ACCOUNT);
-
-		Message message = Message.creator(
-						new PhoneNumber("whatsapp:" + WHATSAPP_NUMBER), 
-						new PhoneNumber("whatsapp:" + messagePs.getTo()),
+			System.out.println("Codigo enviado para Whatsapp.");
+			break;
+		case "Telefone":
+			Message.creator(
+				new PhoneNumber("+55" + messagePs.getTo()),
+				new PhoneNumber(PHONE_NUMBER), 		
 						messagePs.getMessage())
-				.create();*/
-		
+				.create();
+			System.out.println("Codigo enviado para Telefone.");
+			break;
+		default:
+			break;
+		}*/
 		System.out.println(SID_ACCOUNT);
+		System.out.println(AUTH_ACCOUNT);
+		System.out.println(messagePs.getMessage());
 	}
 }

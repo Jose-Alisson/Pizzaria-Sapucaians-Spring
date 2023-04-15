@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,6 +42,9 @@ public class Auth {
 	//@JsonIgnore
 	@Column(name = "password")
 	private String password;
+	
+	@Transient
+	private String tokenAccess;
 	
 	@Column(name = "type_rule")
 	private String typeRule;

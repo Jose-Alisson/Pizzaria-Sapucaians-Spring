@@ -1,6 +1,7 @@
 package br.com.sapucaia.filter;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,8 +33,18 @@ public class AuthFilter extends OncePerRequestFilter {
 		String token = "";
 
 		var autho = request.getHeader("Authorization");
+		
+		Enumeration<String> headerNames = request.getHeaderNames();
+        if (headerNames != null) {
+        	 while (headerNames.hasMoreElements()) {
+                 String headerName = headerNames.nextElement();
+                 String headerValue = request.getHeader(headerName);
+                 System.out.println(headerName + ": " + headerValue);
+             }
+        }
 
 		if (autho != null) {
+			System.out.println("A authorização esta presente");
 			token = autho.replaceAll("Bearer ", "");
 			var subject = tokenService.getSubject(token);
 			var auth = new UserDetailAuth(repository.findByEmail(subject));
@@ -42,7 +53,11 @@ public class AuthFilter extends OncePerRequestFilter {
 					auth.getAuthorities());
 
 			SecurityContextHolder.getContext().setAuthentication(authentication);
+			filterChain.doFilter(request, response);
+			return;
 		}
+		
+		System.out.println("A authorização não esta presente");
 		
 		filterChain.doFilter(request, response);
 	}
