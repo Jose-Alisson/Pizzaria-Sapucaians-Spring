@@ -34,14 +34,14 @@ public class AuthFilter extends OncePerRequestFilter {
 
 		var autho = request.getHeader("Authorization");
 		
-		Enumeration<String> headerNames = request.getHeaderNames();
+		/*Enumeration<String> headerNames = request.getHeaderNames();
         if (headerNames != null) {
         	 while (headerNames.hasMoreElements()) {
                  String headerName = headerNames.nextElement();
                  String headerValue = request.getHeader(headerName);
                  System.out.println(headerName + ": " + headerValue);
              }
-        }
+        }*/
 
 		if (autho != null) {
 			System.out.println("A authorização esta presente");
