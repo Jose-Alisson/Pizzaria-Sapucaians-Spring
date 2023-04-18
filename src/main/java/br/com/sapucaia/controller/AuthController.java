@@ -1,5 +1,7 @@
 package br.com.sapucaia.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import br.com.sapucaia.detail.UserDetailAuth;
@@ -57,51 +60,54 @@ public class AuthController {
 	public ResponseEntity<?> save(@RequestBody Auth auth) {
 		auth.setPermissoes(permissaoRepository.findByType(auth.getTypeRule()));
 		auth.setPassword(getPasswordEncoder().encode(auth.getPassword()));
-		
+
 		Auth auth_ = repository.save(auth);
-		
-		Object response = new Object() {
-			public String tokenAccess = tokenService.generateToken(auth_);
-			public String auth = auth_.getEmail();
-		};
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("tokenAccess",  tokenService.generateToken(auth_));
+		response.put("auth", auth_.getTypeRule());
+	
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@PostMapping("/login")
 	public ResponseEntity<?> autoSign(@RequestBody Auth auth_) {
-		//System.out.println(auth_);
-		if(auth_.getTokenAccess() != null) {
-			
-			var subject = tokenService.getSubject(auth_.getTokenAccess());
-			var auth = new UserDetailAuth(repository.findByEmail(subject));
-			var authentication = new UsernamePasswordAuthenticationToken(auth.getUsername(), null,
-					auth.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-			
-			//System.out.println(authentication.getPrincipal());
-			
-			Object response = new Object() {
-				public String tokenAccess = tokenService.generateToken(Auth.builder().email((String) authentication.getPrincipal()).build());
-				public String auth = repository.findTypeByEmail(auth_.getEmail());
-			};
+		try {
+			// automatic login
+			if (auth_.getTokenAccess() != null) {
+				var subject = tokenService.getSubject(auth_.getTokenAccess());
+				var auth = new UserDetailAuth(repository.findByEmail(subject));
+				var authentication = new UsernamePasswordAuthenticationToken(auth.getUsername(), null, auth.getAuthorities());
+				SecurityContextHolder.getContext().setAuthentication(authentication);
 
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		}
-		
-		if (repository.existByEmail(auth_.getEmail()) > 0) {
-			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(auth_.getEmail(),
-					auth_.getPassword());
-			Authentication authen = authenticationManager.authenticate(authToken);
+				Map<String, Object> response = new HashMap<>();
+				response.put("tokenAccess", tokenService.generateToken(Auth.builder().email((String) authentication.getPrincipal()).build()));
+				//response.put("auth_type_rule", repository.findTypeByEmail(auth.getUsername()));
+				response.put("auth", auth.getAuth().get());
 
-			Object response = new Object() {
-				public String tokenAccess = tokenService
-						.generateToken(((UserDetailAuth) authen.getPrincipal()).getAuth().get());
-				public String auth = repository.findTypeByEmail(auth_.getEmail());
-			};
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			
+			// Login with E-mail and password
+			if (repository.existByEmail(auth_.getEmail()) > 0) {
+				var authToken = new UsernamePasswordAuthenticationToken(auth_.getEmail(), auth_.getPassword());
+				Authentication authen = authenticationManager.authenticate(authToken);
 
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+				var auth = ((UserDetailAuth) authen.getPrincipal()).getAuth().get();
+				
+				Map<String, Object> response = new HashMap<>();
+				response.put("tokenAccess",tokenService.generateToken(auth));
+				//response.put("auth_type_rule", repository.findTypeByEmail(auth_.getEmail()));
+				response.put("auth", auth);
+				
+				return new ResponseEntity<>(response, HttpStatus.OK);
+				
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+			
+		} catch (TokenExpiredException ex) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token JWT já expirado");
 		}
 	}
 
@@ -111,32 +117,29 @@ public class AuthController {
 	}
 
 	@GetMapping("verifyCode")
-	public ResponseEntity<?> getCodeNumber(
-			@RequestParam("number") String number,
+	public ResponseEntity<?> getCodeNumber(@RequestParam("number") String number,
 			@RequestParam("provider") String provider) {
 
 		int generatedCode = 10000 + new Random().nextInt(89999);
-		MessagePs message = MessagePs.builder().to(number)
-				.message("Seu código de verificação é: " + generatedCode).build();
-		
+		MessagePs message = MessagePs.builder().to(number).message("Seu código de verificação é: " + generatedCode)
+				.build();
+
 		messageService.sendMessage(message, provider);
 		
-		Object token = new Object() {
-			public String token = tokenService.GenerateCodeVerify(generatedCode + "");
-		};
-		
-		return new ResponseEntity<>(token, HttpStatus.OK);
+		Map<String, Object> response = new HashMap<>();
+		response.put("token", tokenService.GenerateCodeVerify(generatedCode + ""));
+	
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@PostMapping("verifyCode")
-	public ResponseEntity<?> verifyCodeNumber(
-			@RequestHeader("codeToken") String codeToken,
+	public ResponseEntity<?> verifyCodeNumber(@RequestHeader("codeToken") String codeToken,
 			@RequestParam("code") String code) {
 
 		if (codeToken != null) {
 			String token = codeToken.replaceAll("Bearer ", "");
 			DecodedJWT decoded = tokenService.getCodeVerify(token);
-			System.out.println("ésse é o codigo do token" +  decoded.getClaim("code").asString());
+			System.out.println("ésse é o codigo do token" + decoded.getClaim("code").asString());
 			if (!(decoded.getClaim("code").asString().equals(code))) {
 				return new ResponseEntity<>("Código Invalido", HttpStatus.UNAUTHORIZED);
 			}
@@ -144,7 +147,7 @@ public class AuthController {
 		}
 		return new ResponseEntity<>("Token não present", HttpStatus.UNAUTHORIZED);
 	}
-	
+
 	@GetMapping("/findAll")
 	public ResponseEntity<?> getAll() {
 		return new ResponseEntity<>(repository.findAll(), HttpStatus.OK);

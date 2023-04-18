@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
+import br.com.sapucaia.annotation.FieldOmit;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,10 +40,11 @@ public class Auth {
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 	
-	//@JsonIgnore
+	@FieldOmit(omit = true)
 	@Column(name = "password")
 	private String password;
 	
+	@FieldOmit(omit = true)
 	@Transient
 	private String tokenAccess;
 	

@@ -31,9 +31,30 @@ public class AuthFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 
 		String token = "";
-
 		var autho = request.getHeader("Authorization");
 		
+		try {
+			if (autho != null) {
+				System.out.println("A authorização esta presente");
+				token = autho.replaceAll("Bearer ", "");
+				var subject = tokenService.getSubject(token);
+				var auth = new UserDetailAuth(repository.findByEmail(subject));
+	
+				var authentication = new UsernamePasswordAuthenticationToken(auth.getUsername(), null,
+						auth.getAuthorities());
+	
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+				filterChain.doFilter(request, response);
+				return;
+			}
+		} catch (Exception e) {
+			filterChain.doFilter(request, response);
+		}
+		filterChain.doFilter(request, response);
+	}
+
+}
+
 		/*Enumeration<String> headerNames = request.getHeaderNames();
         if (headerNames != null) {
         	 while (headerNames.hasMoreElements()) {
@@ -42,24 +63,3 @@ public class AuthFilter extends OncePerRequestFilter {
                  System.out.println(headerName + ": " + headerValue);
              }
         }*/
-
-		if (autho != null) {
-			System.out.println("A authorização esta presente");
-			token = autho.replaceAll("Bearer ", "");
-			var subject = tokenService.getSubject(token);
-			var auth = new UserDetailAuth(repository.findByEmail(subject));
-
-			var authentication = new UsernamePasswordAuthenticationToken(auth.getUsername(), null,
-					auth.getAuthorities());
-
-			SecurityContextHolder.getContext().setAuthentication(authentication);
-			filterChain.doFilter(request, response);
-			return;
-		}
-		
-		System.out.println("A authorização não esta presente");
-		
-		filterChain.doFilter(request, response);
-	}
-
-}
