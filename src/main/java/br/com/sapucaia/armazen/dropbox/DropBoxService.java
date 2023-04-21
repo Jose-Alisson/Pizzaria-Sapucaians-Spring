@@ -48,8 +48,7 @@ public class DropBoxService {
         	dbxClientV2().files().uploadBuilder("/" + fileName).withMode(WriteMode.ADD)
                     .uploadAndFinish(inputStream);
         } catch (DbxException e) {
-            //throw new IOException("Error while uploading file to Dropbox.", e);
-        	e.printStackTrace();
+            throw new IOException("Error while uploading file to Dropbox.", e);
         }
     }
 
