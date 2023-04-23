@@ -59,7 +59,7 @@ public class ProdutoController {
 		}
 	}
 	
-	@DeleteMapping("/delete/{id}")
+	@DeleteMapping("/delete")
 	public ResponseEntity<?> delete(@RequestParam("id") Long id) {
 		if(repository.existsById(id)){
 			repository.deleteById(id);
