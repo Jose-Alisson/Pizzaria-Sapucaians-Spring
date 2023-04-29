@@ -31,7 +31,7 @@ public class Pedido {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "num_pedido_sequence")
+	@GeneratedValue(strategy = GenerationType.IDENTITY, generator = "num_pedido_sequence")
 	@SequenceGenerator(sequenceName = "num_pedido_sequence", name = "num_pedido_sequence")
 	@Column(name = "numero_do_pedido")
 	private long numeroDoPedido;

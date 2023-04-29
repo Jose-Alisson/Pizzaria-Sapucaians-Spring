@@ -85,31 +85,14 @@ public class ProdutoController {
 		return new ResponseEntity<>(repository.findAll(),HttpStatus.OK);
 	}
 	
+	@GetMapping("/isInStock")
+	public ResponseEntity<?> isInStock(@RequestParam("product_id") Long id){
+		Optional<Integer> prod = repository.findStockById(id);
 		
-	@GetMapping("/imagem/{id}")
-	public ResponseEntity<byte[]> downloadImagem(@PathVariable Long id) {
-		Optional<Produto> _prod = repository.findById(id);
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		
-		if(_prod.isPresent()) {
-			Produto prod = _prod.get();	
-			if(!prod.getFotoUrl().equals("") && prod.getFotoUrl() != null) {
-				File file = new File(prod.getFotoUrl());
-				try {
-					BufferedImage img = ImageIO.read(file);
-					ImageIO.write(img, "png", outputStream);
-				} catch (IOException e) {
-					
-					e.printStackTrace();
-				}
-			}
+		if(prod.isPresent()) {
+			return ResponseEntity.ok().body(prod.get());
 		}
 		
-		byte[] imagemBytes = outputStream.toByteArray();
-		
-		HttpHeaders headers = new HttpHeaders();
-	    headers.setContentType(MediaType.IMAGE_PNG);
-	    headers.setContentLength(imagemBytes.length);
-	    return new ResponseEntity<>(imagemBytes, headers, HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Produto não encontrado!");
 	}
 }
