@@ -65,10 +65,17 @@ public class PedidoController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@GetMapping("/findById/{id}")
+	@GetMapping("/findById")
 	public ResponseEntity<?> findById(@RequestParam("id") Long id) {
 		return new ResponseEntity<>(repository.findById(id), HttpStatus.OK);
 	}
+	
+	@GetMapping("/findAllByUser")
+	public ResponseEntity<?> findAllByUser(@RequestParam("usuario_id") Long id) {
+		return new ResponseEntity<>(repository.findByUsuarioId(id), HttpStatus.OK);
+	}
+	
+	
 
 	@GetMapping("/findAll")
 	public ResponseEntity<?> findAll() {

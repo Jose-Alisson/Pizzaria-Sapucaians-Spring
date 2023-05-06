@@ -11,6 +11,6 @@ import br.com.sapucaia.model.Pedido;
 @Service
 public interface PedidoRepository extends JpaRepository<Pedido, Long>{
 	
-	@Query(value = "SELECT P.* FROM PEDIDOS P WHERE P.USUARIO_ID = ?1", nativeQuery = true)
+	@Query(value = "select p.* from pedidos p, usuarios u where p.usuario_id = u.id and u.id = ?1", nativeQuery = true)
 	List<Pedido> findByUsuarioId(Long id);
 }

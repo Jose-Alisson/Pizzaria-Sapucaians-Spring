@@ -21,7 +21,7 @@ public class TokenService {
 	
 	public String generateToken(Auth auth) {
 		Date date = Date.from(LocalDateTime.now()
-		        .plusMinutes(30)
+		        .plusMinutes(90)
 		        .toInstant(ZoneOffset.of("-03:00")));
 		
 		return JWT.create()
